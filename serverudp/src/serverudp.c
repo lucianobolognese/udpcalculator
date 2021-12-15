@@ -67,7 +67,10 @@ int chat(struct sockaddr_in cad ,int sock){
 
 	char var [512];
 	int recvMsgSize;
-
+	hostent *servHost;
+	char address [512];
+	strcpy(address,ADDRESS);
+	servHost = gethostbyaddr((char *)&address, sizeof(address), AF_INET);
 	msgStruct answer;
 	memset(&answer, 0, sizeof(answer));
 
@@ -84,8 +87,8 @@ int chat(struct sockaddr_in cad ,int sock){
 		recvMsgSize = recvfrom(sock, (char*) &answer , sizeof(answer), 0, (struct sockaddr*)&cad, &cliAddrLen);
 
 		printf("Richiesta operazione '%s %d %d' ",answer.op,answer.a,answer.b);
-		printf ("dal client %s \n", inet_ntoa(cad.sin_addr));
-			//		printf("ip \n", );
+		printf ("dal client %s ", answer.hostname);
+		printf("ip %s \n" ,inet_ntoa(cad.sin_addr));
 
 		strcpy(var, answer.op);
 		char op=answer.op[0];
@@ -144,8 +147,6 @@ int main(int argc, char *argv[]) {
 #if defined WIN32 // Winsock initialization
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
-
-
 	if (result != NO_ERROR) { //error checking in winsock initialization
 		printf("Error at WSAStartup()\n");
 		return 0;
@@ -174,7 +175,7 @@ int main(int argc, char *argv[]) {
 
 	// BIND DELLA SOCKET
 	if ((bind(sock, (struct sockaddr *)&sad, sizeof(sad))) < 0)
-	error("bind() failed");
+	error("bind() failed/n");
 
 
 

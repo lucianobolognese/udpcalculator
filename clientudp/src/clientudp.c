@@ -43,11 +43,14 @@ int main(int argc, char *argv[]) {
 	char address [512];
 	char str [512];
 	char abs [512];
+	msgStruct request;
+	msgStruct answer;
 
 	if (argv[1]>0) {
 		strcpy(str,argv[1]);
 		char * token = strtok(str, ":");
 		strcpy(address,token);
+		strcpy(request.hostname, address);
 		token = strtok(NULL," ");
 		strcpy(abs,token);
 		port = atoi(abs);
@@ -61,6 +64,7 @@ int main(int argc, char *argv[]) {
 		port=PROTOPORT;
 		strcpy(address,ADDRESS);
 		strcpy(str,address);
+		strcpy(request.hostname,"localhost");
 	}
 	printf("Indirizzo: %s \n", address);
 	printf("Porta: %d \n", port);
@@ -76,13 +80,7 @@ int main(int argc, char *argv[]) {
 #endif
 	int sock;
 	struct sockaddr_in sad;
-	struct sockaddr_in fromAddr;
-	unsigned int fromSize;
-	char echoString[ECHOMAX];
-	char echoBuffer[ECHOMAX];
-	int echoStringLen;
-	int respStringLen;
-	char exit [512]="=";
+
 
 	// CREAZIONE DELLA SOCKET
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
@@ -93,29 +91,30 @@ int main(int argc, char *argv[]) {
 	sad.sin_family = PF_INET;
 	sad.sin_port = port;
 	sad.sin_addr.s_addr = inet_addr("127.0.0.1");
-	char var [512];
-	char var1 [512];
-	int x;
-	int y;
+
 	char input_string1 [512]; //first standard input string
 	char input_string2 [512]; //second standard input string
 	char input_string3 [512];
-	char server_string [512]; //server response
-	msgStruct request;
-	msgStruct answer;
-	memset(&request, 0, sizeof(request));
+
+	hostent *servHost;
+//	char servhost [ECHOMAX];
+
+
+	servHost = gethostbyaddr((char *)&address, sizeof(address), AF_INET);
+
+	//memset(&request, 0, sizeof(request));
+
 
 	while(1){
-		memset(&request, 0, sizeof(request));
-		memset(&answer, 0, sizeof(answer));
-		memset(&input_string1, 0, sizeof(input_string1));
-		memset(&input_string1, 0, sizeof(input_string2));
-		memset(&input_string1, 0, sizeof(input_string3));
+		//memset(&request, 0, sizeof(request));
+		//memset(&answer, 0, sizeof(answer));
+
 		printf("Inserisci un'operazione (ex. + 31 12 or '=' per chiudere la calcolatrice): ");
 		scanf("%s", &request.op);
 		scanf("%d", &request.a);
 		scanf("%d", &request.b);
 		strcpy(request.result,"null");
+		unsigned int servAddrLen= sizeof(sad);
 
 /*
 		if ((echoStringLen = sizeof(request)) > ECHOMAX){
@@ -125,16 +124,15 @@ int main(int argc, char *argv[]) {
 
 		sendto(sock, (char*) &request , sizeof(request), 0, (struct sockaddr*)&sad, sizeof(sad));
 
-
 		// INVIO DELLA STRINGA ECHO AL SERVER
 /*
 		if (sendto(sock, echoString, echoStringLen, 0, (struct sockaddr*)&sad, sizeof(sad)) != echoStringLen);
 		error("sendto() sent different number of bytes than expected");
 */
 		// RITORNO DELLA STRINGA ECHO
-		fromSize = sizeof(fromAddr);
-		respStringLen = recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&fromAddr, &fromSize);
-		printf("Ricevuto risultato dal server 'server', ");
+
+		recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&sad, &servAddrLen);
+		printf("Ricevuto risultato dal server %s , ", answer.hostname);
 		printf("ip %s : ", inet_ntoa(sad.sin_addr));
 		printf("%s\n", answer.result);
 	/*
@@ -146,8 +144,8 @@ int main(int argc, char *argv[]) {
 	*/
 
 	}
-	echoBuffer[respStringLen] = '\0'; // inutile con memset
-	printf("Received: %s\n", answer.result);
+
+
 	closesocket(sock);
 	clearwinsock();
 	system("pause");

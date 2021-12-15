@@ -21,6 +21,7 @@ typedef struct {
 	int a;
 	int b;
 	char result [ECHOMAX];
+	char hostname [ECHOMAX];
 } msgStruct;
 
 typedef struct {
