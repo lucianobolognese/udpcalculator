@@ -1,10 +1,10 @@
 /*
  ============================================================================
  Name        : clientudp.c
- Author      : luciano
+ Author      : Luciano Domenico Bolognese
  Version     :
  Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+ Description : CLIENT UDP of calculator which works in local address
  ============================================================================
  */
 
@@ -40,7 +40,7 @@ void clearwinsock() {
 int main(int argc, char *argv[]) {
 
 #if defined WIN32
-// Initialize Winsock
+// SOCKET'S INITIALIZATION
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
 	if (result != NO_ERROR) {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
 
 
-	char server_message[512]="Connection established\n";
+
 	int port;
 	char address [512];
 	char str [512];
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 		token = strtok(NULL," ");
 		strcpy(abs,token);
 		port = atoi(abs);
-		//strcpy(abs,token);
+
 	}
 	else if (argv[1]<0) {
 		printf("Wrong address %s \n", argv[1]);
@@ -77,22 +77,20 @@ int main(int argc, char *argv[]) {
 		port=PROTOPORT;
 		strcpy(address,ADDRESS);
 		strcpy(str,address);
-		//strcpy(request.hostname,"localhost");
 		strcpy(request.servername,"srv.di.uniba.it");
 	}
-	printf("Indirizzo: %s \n", address);
-	printf("Porta: %d \n", port);
+
 
 
 	int sock;
 	struct sockaddr_in sad;
 
 
-	// CREAZIONE DELLA SOCKET
+	// SOCKET'S CREATION
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 	error("socket() failed");
 
-	// COSTRUZIONE DELL'INDIRIZZO DEL SERVER
+	// MAKING OF ADDRESS
 	memset(&sad, 0, sizeof(sad));
 	sad.sin_family = PF_INET;
 	sad.sin_port = port;
@@ -103,36 +101,37 @@ int main(int argc, char *argv[]) {
 	char var [ECHOMAX];
 	char exit [ECHOMAX];
 	strcpy(exit,"=");
+	int recvMsgSize;
 
 
-
+	// HOST STRUCT TO GET HOSTNAME
 	struct hostent *host;
 	const char* ip= "127.0.0.1";
 	struct in_addr add;
+	struct in_addr fromAddr;
 	add.s_addr=inet_addr(ip);
+	fromAddr.s_addr=inet_addr(ip);
 	host = gethostbyaddr ((char *) &add, 4, AF_INET);
 	char* canonical_name=host->h_name;
 	strcpy(request.hostname,canonical_name);
 
-	//memset(&request, 0, sizeof(request));
 
-
+	//INTERACTION WITH THE SERVER
 	while(1){
 		//memset(&request, 0, sizeof(request));
 		//memset(&answer, 0, sizeof(answer));
 		memset(&request.a,0,sizeof(request.a));
 		memset(&request.b,0,sizeof(request.b));
 
-		printf("Inserisci un'operazione (ex. + 31 12 or '=' per chiudere la calcolatrice): ");
+		printf("Insert an operation (ex. + 31 12 or '=' to close the calculator): ");
 		scanf("%s", &request.op);
 		strcpy(var,request.op);
 		if (strcmp(var,exit)==0) {
 			sendto(sock, (char*) &request , sizeof(request), 0, (struct sockaddr*)&sad, sizeof(sad));
 			recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&sad, &servAddrLen);
-			//printf("Disconnesso");
-			printf("Ricevuto risultato dal server %s , ", answer.servername);
+
+			printf("Received result from the server %s , ", answer.servername);
 			printf("ip %s : ", inet_ntoa(sad.sin_addr));
-		//	printf("ip %s : ", inet_ntoa(host->h_addr_list[0]));
 			printf("%s\n", answer.result);
 			system("pause");
 			return 0;
@@ -142,32 +141,26 @@ int main(int argc, char *argv[]) {
 		scanf("%d", &request.b);
 		strcpy(request.result,"null");
 
-
+	// SENDING OF THE PACKET
 		sendto(sock, (char*) &request , sizeof(request), 0, (struct sockaddr*)&sad, sizeof(sad));
 
-		// INVIO DELLA STRINGA ECHO AL SERVER
-/*
-		if (sendto(sock, echoString, echoStringLen, 0, (struct sockaddr*)&sad, sizeof(sad)) != echoStringLen);
-		error("sendto() sent different number of bytes than expected");
-*/
-		// RITORNO DELLA STRINGA ECHO
+		// RETURN OF THE ANSWER
 
-		recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&sad, &servAddrLen);
-		printf("Ricevuto risultato dal server %s , ", answer.servername);
+		recvMsgSize=recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&sad, &servAddrLen);
+
+		// CHECKING PACKET'S ADDRESS
+		if (sad.sin_addr.s_addr != fromAddr.s_addr){
+			fprintf(stderr, "Error: received a packet from another address.\n");
+			return 0;
+		}
+		printf("Received answer from server %s , ", answer.servername);
 		printf("ip %s : ", inet_ntoa(sad.sin_addr));
 		printf("%s\n", answer.result);
 
-	/*
-		if (sad.sin_addr.s_addr != fromAddr.sin_addr.s_addr)
-	{
-	fprintf(stderr, "Error: received a packet from unknown source.\n");
-	exit(EXIT_FAILURE);
-	}
-	*/
 		}
 	}
 
-
+	// SOCKET CLOSING
 	closesocket(sock);
 	clearwinsock();
 	system("pause");

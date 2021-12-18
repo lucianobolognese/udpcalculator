@@ -1,10 +1,10 @@
 /*
  ============================================================================
  Name        : serverudp.c
- Author      : luciano
+ Author      : Luciano Domenico Bolognese
  Version     :
  Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+ Description : SERVER UDP of a calculator which works in local address
  ============================================================================
  */
 
@@ -37,6 +37,7 @@ void clearwinsock() {
 #endif
 }
 
+// OPERATION FOR CALCULUS
 int add(int a,int b) {
 	int result;
 	result=a+b;
@@ -63,13 +64,13 @@ float division(int a,int b) {
 	return result;
 }
 
+// FUNCTION OF INTERACTION
 int chat(struct sockaddr_in cad ,int sock){
 
 	char var [512];
 	char address [512];
 	strcpy(address,ADDR);
 	int recvMsgSize;
-	//struct hostent *gethostbyaddr(char *address, sizeof(address), AF_INET);
 
 
 	msgStruct answer;
@@ -87,8 +88,8 @@ int chat(struct sockaddr_in cad ,int sock){
 
 		recvMsgSize = recvfrom(sock, (char*) &answer , sizeof(answer), 0, (struct sockaddr*)&cad, &cliAddrLen);
 
-		printf("Richiesta operazione '%s %d %d' ",answer.op,answer.a,answer.b);
-		printf ("dal client %s ", answer.hostname);
+		printf("Request operation '%s %d %d' ",answer.op,answer.a,answer.b);
+		printf ("from client %s ", answer.hostname);
 		printf("ip %s \n" ,inet_ntoa(cad.sin_addr));
 
 		strcpy(var, answer.op);
@@ -99,7 +100,6 @@ int chat(struct sockaddr_in cad ,int sock){
 		{
 		case '+':
 			c=add(answer.a,answer.b);
-			//itoa(c,result,10);
 			sprintf(answer.result,"%d",c);
 			break;
 
@@ -123,7 +123,7 @@ int chat(struct sockaddr_in cad ,int sock){
 			break;
 
 		case '=':
-			strcpy(answer.result,"Disconnesso");
+			strcpy(answer.result,"Disconnected");
 			break;
 
 		default:
@@ -134,7 +134,6 @@ int chat(struct sockaddr_in cad ,int sock){
 	sendto(sock, (char*) &answer , sizeof(answer), 0, (struct sockaddr *)&cad, &clAddrLen);
 
 	if(op=='='){
-		printf("[+]Client disconnesso.\n\n");
 		return 0;
 	}
 	}
@@ -148,7 +147,7 @@ int main(int argc, char *argv[]) {
 #if defined WIN32 // Winsock initialization
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
-	if (result != NO_ERROR) { //error checking in winsock initialization
+	if (result != NO_ERROR) { //checking error in socket initialization
 		printf("Error at WSAStartup()\n");
 		return 0;
 	}
@@ -160,38 +159,47 @@ int main(int argc, char *argv[]) {
 	char echoBuffer[ECHOMAX];
 	int recvMsgSize;
 
-	// CREAZIONE DELLA SOCKET
+	// SOCKET'S CREATION
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 	error("socket() failed");
 
+	// CHECKING ERROR IN SOCKET'S CREATION
 
-	// COSTRUZIONE DELL'INDIRIZZO DEL SERVER
+		if (sock < 0) {
+			error ("Socket's creation failed \n");
+			return -1;
+		}
+
+	// MAKING OF SERVER ADDRESS
 	memset(&sad, 0, sizeof(sad));
-
 	sad.sin_family = AF_INET;
 	sad.sin_port = port;
 	sad.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 
 
-	// BIND DELLA SOCKET
-	if ((bind(sock, (struct sockaddr *)&sad, sizeof(sad))) < 0)
-	error("bind() failed/n");
+	// SOCKET'S BIND
+	if ((bind(sock, (struct sockaddr *) &sad, sizeof(sad))) < 0)
+	error("bind() failed\n");
 
 
 
-	// RICEZIONE DELLA STRINGA ECHO DAL CLIENT
+	// INTERACTION WITH THE CLIENT
 	while(1) {
 		memset(&echoBuffer,0,sizeof(echoBuffer));
 		struct sockaddr_in cad;
-		printf("Server attivo, in attesa di un'operazione...\n");
+		printf("Server is online, waiting for an operation...\n");
 
 		if(chat(cad, sock)==0){
 					continue;
 				}
-		if (sendto(sock, echoBuffer, recvMsgSize, 0, (struct sockaddr *)&cad,sizeof(cad)) != recvMsgSize)
-			error("sendto() ha mandato un numero di byte diverso");
 
 	}
+
+	// SOCKET CLOSING
+	closesocket(sock);
+	clearwinsock();
+	system("pause");
+	return EXIT_SUCCESS;
 }
 
