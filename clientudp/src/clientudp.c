@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 	// MAKING OF ADDRESS
 	memset(&sad, 0, sizeof(sad));
 	sad.sin_family = PF_INET;
-	sad.sin_port = port;
+	sad.sin_port = htons(port);
 	sad.sin_addr.s_addr = inet_addr("127.0.0.1");
 	char addr [512];
 	strcpy(addr,inet_ntoa(sad.sin_addr));

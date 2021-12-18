@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
 #if defined WIN32 // Winsock initialization
 	WSADATA wsa_data;
 	int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
+
 	if (result != NO_ERROR) { //checking error in socket initialization
 		printf("Error at WSAStartup()\n");
 		return 0;
@@ -172,15 +173,26 @@ int main(int argc, char *argv[]) {
 
 	// MAKING OF SERVER ADDRESS
 	memset(&sad, 0, sizeof(sad));
-	sad.sin_family = AF_INET;
-	sad.sin_port = port;
-	sad.sin_addr.s_addr = inet_addr("127.0.0.1");
+	sad.sin_family = PF_INET;
+	sad.sin_port = htons(port);
+	sad.sin_addr.s_addr = inet_addr("127.0.0.1" );
 
 
-
+/*
 	// SOCKET'S BIND
 	if ((bind(sock, (struct sockaddr *) &sad, sizeof(sad))) < 0)
 	error("bind() failed\n");
+*/
+	int n;
+	n=bind(sock, (struct sockaddr*) &sad, sizeof(sad));
+	if (n < 0)  {
+		printf ("bind() failed %d \n", n);
+		closesocket(sock);
+		clearwinsock();
+		return -1;
+	} else {
+		printf("Bind eseguita\n");
+	}
 
 
 
