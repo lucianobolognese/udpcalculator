@@ -66,11 +66,12 @@ float division(int a,int b) {
 int chat(struct sockaddr_in cad ,int sock){
 
 	char var [512];
-	int recvMsgSize;
-	hostent *servHost;
 	char address [512];
-	strcpy(address,ADDRESS);
-	servHost = gethostbyaddr((char *)&address, sizeof(address), AF_INET);
+	strcpy(address,ADDR);
+	int recvMsgSize;
+	//struct hostent *gethostbyaddr(char *address, sizeof(address), AF_INET);
+
+
 	msgStruct answer;
 	memset(&answer, 0, sizeof(answer));
 
@@ -122,17 +123,18 @@ int chat(struct sockaddr_in cad ,int sock){
 			break;
 
 		case '=':
+			strcpy(answer.result,"Disconnesso");
 			break;
 
 		default:
 			strcpy(answer.result, "Wrong operation");
 			break;
 		}
-
-	sendto(sock, (char*) &answer , sizeof(answer), 0, (struct sockaddr *)&cad, &cad);
+	unsigned int clAddrLen= sizeof(cad);
+	sendto(sock, (char*) &answer , sizeof(answer), 0, (struct sockaddr *)&cad, &clAddrLen);
 
 	if(op=='='){
-		printf("[+]Client disconnected.\n\n");
+		printf("[+]Client disconnesso.\n\n");
 		return 0;
 	}
 	}
@@ -141,7 +143,6 @@ int chat(struct sockaddr_in cad ,int sock){
 
 
 int main(int argc, char *argv[]) {
-	char server_message[512]="Connection established\n";
 	int port=PROTOPORT;
 
 #if defined WIN32 // Winsock initialization
@@ -183,14 +184,7 @@ int main(int argc, char *argv[]) {
 	while(1) {
 		memset(&echoBuffer,0,sizeof(echoBuffer));
 		struct sockaddr_in cad;
-		int c_socket;
-		unsigned int cliAddrLen;
 		printf("Server attivo, in attesa di un'operazione...\n");
-		cliAddrLen = sizeof(cad);
-
-		/*recvMsgSize = recvfrom(sock, echoBuffer, ECHOMAX, 0, (struct sockaddr*)&cad, &cliAddrLen);
-		printf("Handling client %s\n", inet_ntoa(cad.sin_addr));
-		printf("Received: %s\n", echoBuffer);*/
 
 		if(chat(cad, sock)==0){
 					continue;
@@ -198,14 +192,6 @@ int main(int argc, char *argv[]) {
 		if (sendto(sock, echoBuffer, recvMsgSize, 0, (struct sockaddr *)&cad,sizeof(cad)) != recvMsgSize)
 			error("sendto() ha mandato un numero di byte diverso");
 
-
-
-
-/*
-	// RINVIA LA STRINGA ECHO AL CLIENT
-	if (sendto(sock, echoBuffer, recvMsgSize, 0, (struct sockaddr *)&cad,sizeof(cad)) != recvMsgSize)
-	error("sendto() sent different number of bytes than expected");
-	*/
 	}
 }
 

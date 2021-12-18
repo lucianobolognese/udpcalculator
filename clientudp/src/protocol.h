@@ -22,6 +22,7 @@ typedef struct {
 	int b;
 	char result [ECHOMAX];
 	char hostname [ECHOMAX];
+	char servername [ECHOMAX];
 } msgStruct;
 
 typedef struct {
@@ -30,11 +31,10 @@ typedef struct {
 	short h_addrtype; /* host address type (AF_INET) */
 	short h_length; /* length of address (INET)*/
 	char **h_addr_list; /* A NULL-terminated list of
-						addresses (in_addr) for the
+						//addresses (in_addr) for the
 						host in network byte order.*/
 	#define h_addr h_addr_list[0];
 } hostent;
-
 
 
 #endif /* PROTOCOL_H_ */

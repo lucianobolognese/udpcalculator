@@ -22,6 +22,7 @@ typedef struct {
 	int b;
 	char result [ECHOMAX];
 	char hostname [ECHOMAX];
+	char servername [ECHOMAX];
 } msgStruct;
 
 typedef struct {
