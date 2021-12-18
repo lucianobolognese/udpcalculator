@@ -177,12 +177,7 @@ int main(int argc, char *argv[]) {
 	sad.sin_port = htons(port);
 	sad.sin_addr.s_addr = inet_addr("127.0.0.1" );
 
-
-/*
-	// SOCKET'S BIND
-	if ((bind(sock, (struct sockaddr *) &sad, sizeof(sad))) < 0)
-	error("bind() failed\n");
-*/
+	// BIND OF THE SERVER
 	int n;
 	n=bind(sock, (struct sockaddr*) &sad, sizeof(sad));
 	if (n < 0)  {
@@ -190,8 +185,6 @@ int main(int argc, char *argv[]) {
 		closesocket(sock);
 		clearwinsock();
 		return -1;
-	} else {
-		printf("Bind eseguita\n");
 	}
 
 

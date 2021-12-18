@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 	strcpy(request.hostname,canonical_name);
 
 
-	//INTERACTION WITH THE SERVER
+	// INTERACTION WITH THE SERVER
 	while(1){
 		//memset(&request, 0, sizeof(request));
 		//memset(&answer, 0, sizeof(answer));
@@ -142,10 +142,10 @@ int main(int argc, char *argv[]) {
 		strcpy(request.result,"null");
 
 	// SENDING OF THE PACKET
+
 		sendto(sock, (char*) &request , sizeof(request), 0, (struct sockaddr*)&sad, sizeof(sad));
 
 		// RETURN OF THE ANSWER
-
 		recvMsgSize=recvfrom(sock,(char*) &answer , sizeof(answer), 0, (struct sockaddr*)&sad, &servAddrLen);
 
 		// CHECKING PACKET'S ADDRESS
